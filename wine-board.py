@@ -88,10 +88,10 @@ def comb_categories(passes):
 
 def print_results(passes):
     print "PASS {}".format(passes)
-    print "---"
+    print "--Added This Pass--"
     for key, val in added_categories.iteritems():
         print "{} : {}".format(key, val)
-    print "---"
+    print "--Total Added--"
     for key, val in added_categories.iteritems():
         outList = val + given_categories[key]
         given_categories[key] = outList
@@ -104,8 +104,8 @@ def calculate_distances():
             #for each added term
             lem = wordnet_lemmatizer.lemmatize(term)
             fruit_sum = 0
-            fruit_ct = len(given_categories['fruit'])
-            for given_term in given_categories['fruit']:
+            fruit_ct = len(original_categories['fruit'])
+            for given_term in original_categories['fruit']:
                 given_lem = wordnet_lemmatizer.lemmatize(term)
                 try:
                     #try to find distance
@@ -117,14 +117,14 @@ def calculate_distances():
                 fruit_sum += term_distance
             
             oak_sum = 0
-            oak_ct = len(given_categories['oak'])
-            for given_term in given_categories['oak']:
+            oak_ct = len(original_categories['oak'])
+            for given_term in original_categories['oak']:
                 given_lem = wordnet_lemmatizer.lemmatize(term)
                 try:
                     #try to find distance
                     term_distance = word_vectors.similarity(term, given_term)
                 except:
-                    print "{} or {} not found".format(term, given_term)
+                    print "{} or {} not found".format(lem, given_lem)
                     term_distance = 0
                     oak_ct -= 1 
                 oak_sum += term_distance
@@ -167,7 +167,7 @@ print X
 y = y[:, 1:2]
 y = y.flatten()
 nY = []
-for val in np.nditer(y, op_flags=['readwrite']):
+for val in np.nditer(y):
     if val == u'fruit' or val == u'floral':
         nY.append(0)
     elif val == u'spice' or val == u'herb':
