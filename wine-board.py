@@ -16,13 +16,22 @@ stoplist = ' '.join(map(str, stopArr))
 
 # Constructing fuzzy search
 original_categories = {
-        'fruit': ['jammy', 'ripe', 'juicy', 'fleshy', 'plummy', 'berry', 'cassis', 'citrus', 'stonefruit', 'tropicalfruit', 'redfruit', 'melon', 'apple', 'pear', 'mango', 'lime', 'cherry'],
-        'spice': ['pepper', 'clove', 'anise', 'cinammon', 'nutmeg', 'saffron', 'ginger', 'spicy'], 
-        'floral': ['hibiscus', 'potpourri', 'rose', 'lavender',  'geranium', 'blossom', 'violet', 'jasmine'],
-        'oak': ['smoke', 'smoky', 'vanilla', 'cocoa', 'cream', 'coffee', 'butter'],
-        'herb': ['vegetal', 'vegetable', 'asparagus', 'grass', 'sage', 'eucalyptus', 'dill', 'quince', 'green'],
-        'inorganic': ['mineral', 'graphite', 'petroleum', 'plastic', 'rubber', 'tar']
-        }
+        'fruit' : ['plum', 'currant', 'juicy', 'jelly', 'cherry', 'blueberry', 'pomegranate', 'cranberry', 'berry', 'apple', 'blackberry', 'citrus'],
+        'spice' : ['smoke', 'cocoa', 'spiced', 'leathery', 'spicy', 'baked', 'roasted', 'molasses', 'woodspice', 'cedar'],
+        'floral' : [],
+        'oak' : ['wood', 'barrel', 'oaky', 'chocolaty', 'raisiny', 'syrupy', 'woody'],
+        'herb' : ['mint', 'sage', 'leaf', 'tobacco', 'bramble', 'stalky', 'leafy', 'minty', 'saucy', 'medicinal'],
+        'inorganic' : ['mineral', 'minerality', 'flinty', 'lend', 'rubbery', 'tar', 'menthol', 'graphite'],
+    }
+#{
+#        'fruit': ['jammy', 'ripe', 'juicy', 'fleshy', 'plummy', 'berry', 'cassis', 'citrus', 'stonefruit', 'tropicalfruit', 'redfruit', 'melon', 'apple', 'pear', 'mango', 'lime', 'cherry'],
+#        'spice': ['pepper', 'clove', 'anise', 'cinammon', 'nutmeg', 'saffron', 'ginger', 'spicy'], 
+#        'floral': ['hibiscus', 'potpourri', 'rose', 'lavender',  'geranium', 'blossom', 'violet', 'jasmine'],
+#        'oak': ['smoke', 'smoky', 'vanilla', 'cocoa', 'cream', 'coffee', 'butter'],
+#        'herb': ['vegetal', 'vegetable', 'asparagus', 'grass', 'sage', 'eucalyptus', 'dill', 'quince', 'green'],
+#        'inorganic': ['mineral', 'graphite', 'petroleum', 'plastic', 'rubber', 'tar']
+#        }
+
 given_categories = original_categories
 added_categories = {'fruit': [], 'spice': [], 'floral': [], 'inorganic': [], 'herb': [], 'oak': []}
 
@@ -104,29 +113,35 @@ def calculate_distances():
             #for each added term
             lem = wordnet_lemmatizer.lemmatize(term)
             fruit_sum = 0
-            fruit_ct = len(original_categories['fruit'])
-            for given_term in original_categories['fruit']:
-                given_lem = wordnet_lemmatizer.lemmatize(term)
+            fruit_ct = len(given_categories['fruit'])
+            for given_term in given_categories['fruit']:
+                given_lem = wordnet_lemmatizer.lemmatize(given_term)
                 try:
                     #try to find distance
                     term_distance = word_vectors.similarity(term, given_term)
                 except:
-                    print "{} or {} not found".format(term, given_term)
-                    term_distance = 0
-                    fruit_ct -= 1 
+                    try:
+                        term_distance = word_vectors.similarity(lem, given_term)
+                    except:
+                        print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
+                        term_distance = 0
+                        fruit_ct -= 1 
                 fruit_sum += term_distance
             
             oak_sum = 0
-            oak_ct = len(original_categories['oak'])
-            for given_term in original_categories['oak']:
+            oak_ct = len(given_categories['spice'])
+            for given_term in given_categories['spice']:
                 given_lem = wordnet_lemmatizer.lemmatize(term)
                 try:
                     #try to find distance
                     term_distance = word_vectors.similarity(term, given_term)
                 except:
-                    print "{} or {} not found".format(lem, given_lem)
-                    term_distance = 0
-                    oak_ct -= 1 
+                    try:
+                        term_distance = word_vectors.similarity(lem, given_lem)
+                    except:
+                        print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
+                        term_distance = 0
+                        oak_ct -= 1 
                 oak_sum += term_distance
 
             # append averages
@@ -170,10 +185,10 @@ nY = []
 for val in np.nditer(y):
     if val == u'fruit' or val == u'floral':
         nY.append(0)
-    elif val == u'spice' or val == u'herb':
+    elif val == u'inorganic' or val == u'herb':
         nY.append(1)
 
-    else: # val == u"oak" or val == u'inorganic':
+    else: # val == u"oak" or val == u'spice':
         nY.append(2)
 
 y = np.array(nY)
@@ -191,8 +206,8 @@ for weights in ['uniform', 'distance']:
 
     # Plot the decision boundary. For that, we will assign a color to each
     # point in the mesh [x_min, x_max]x[y_min, y_max].
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 0.2
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() - 0.2
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
                          np.arange(y_min, y_max, h))
     Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
