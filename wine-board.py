@@ -162,6 +162,70 @@ def reshuffle_results():
         given_categories[key] = outList
         added_categories[key] = []
 
+def run_neighbors():
+
+
+    n_neighbors = 7
+
+    h = .02
+    global X
+    global y
+
+    X = np.array(X)
+    y = np.array(y)
+    print X
+    y = y[:, 1:2]
+    y = y.flatten()
+    nY = []
+    for val in np.nditer(y):
+        if val == u'fruit':
+            nY.append(0)
+        elif val == u'floral':
+            nY.append(1)
+        elif val == u'inorganic':
+            nY.append(2)
+        elif val == u'herb':
+            nY.append(3)
+        elif val == u'oak': #  or 
+            nY.append(4)
+        else:
+            nY.append(5)
+
+    y = np.array(nY)
+
+    print y
+
+    # Create color maps
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])#, '#FFFFAA', '#800080', '#D2691E'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])#, '#FFFF00', '#FF00FF', '#8B4513'])
+
+    for weights in ['uniform', 'distance']:
+        # we create an instance of Neighbours Classifier and fit the data.
+        clf = neighbors.KNeighborsClassifier(n_neighbors, weights=weights)
+        clf.fit(X, y)
+
+        # Plot the decision boundary. For that, we will assign a color to each
+        # point in the mesh [x_min, x_max]x[y_min, y_max].
+        x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 0.2
+        y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() - 0.2
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                             np.arange(y_min, y_max, h))
+        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+        # Put the result into a color plot
+        Z = Z.reshape(xx.shape)
+        plt.figure()
+        plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+
+        # Plot also the training points
+        plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold,
+                    edgecolor='k', s=20)
+        plt.xlim(xx.min(), xx.max())
+        plt.ylim(yy.min(), yy.max())
+        plt.title("3-Class classification (k = %i, weights = '%s')"
+                  % (n_neighbors, weights))
+
+    plt.show()
 
 comb_categories(passes)
 print_results(passes)
@@ -171,61 +235,17 @@ comb_categories(passes)
 print_results(passes)
 calculate_distances()
 reshuffle_results()
+comb_categories(passes)
+print_results(passes)
+calculate_distances()
+reshuffle_results()
+comb_categories(passes)
+print_results(passes)
+calculate_distances()
+reshuffle_results()
+run_neighbors()
 
-n_neighbors = 7
 
-h = .02
-
-X = np.array(X)
-y = np.array(y)
-print X
-y = y[:, 1:2]
-y = y.flatten()
-nY = []
-for val in np.nditer(y):
-    if val == u'fruit' or val == u'floral':
-        nY.append(0)
-    elif val == u'inorganic' or val == u'herb':
-        nY.append(1)
-
-    else: # val == u"oak" or val == u'spice':
-        nY.append(2)
-
-y = np.array(nY)
-
-print y
-
-# Create color maps
-cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
-cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
-
-for weights in ['uniform', 'distance']:
-    # we create an instance of Neighbours Classifier and fit the data.
-    clf = neighbors.KNeighborsClassifier(n_neighbors, weights=weights)
-    clf.fit(X, y)
-
-    # Plot the decision boundary. For that, we will assign a color to each
-    # point in the mesh [x_min, x_max]x[y_min, y_max].
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 0.2
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() - 0.2
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-
-    # Put the result into a color plot
-    Z = Z.reshape(xx.shape)
-    plt.figure()
-    plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
-
-    # Plot also the training points
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold,
-                edgecolor='k', s=20)
-    plt.xlim(xx.min(), xx.max())
-    plt.ylim(yy.min(), yy.max())
-    plt.title("3-Class classification (k = %i, weights = '%s')"
-              % (n_neighbors, weights))
-
-plt.show()
 #sortedCsv = sorted(csvList, key=lambda k: k['weight'], reverse=True)
 #with open(board, 'wb') as csvfile:
 #    fieldnames = ['vocab', 'weight']
