@@ -18,7 +18,7 @@ stoplist = ' '.join(map(str, stopArr))
 original_categories = {
         'fruit' : ['plum', 'currant', 'juicy', 'jelly', 'cherry', 'blueberry', 'pomegranate', 'cranberry', 'berry', 'apple', 'blackberry', 'citrus'],
         'spice' : ['smoke', 'cocoa', 'spiced', 'leathery', 'spicy', 'baked', 'roasted', 'molasses', 'woodspice', 'cedar'],
-        'floral' : [],
+        'floral' : ['floral', 'aromatic', 'delicate', 'fragrant', 'perfume', 'rose', 'petal', 'hibiscus', 'geranium', 'lavender', 'jasmine', 'violet'],
         'oak' : ['wood', 'barrel', 'oaky', 'chocolaty', 'raisiny', 'syrupy', 'woody'],
         'herb' : ['mint', 'sage', 'leaf', 'tobacco', 'bramble', 'stalky', 'leafy', 'minty', 'saucy', 'medicinal'],
         'inorganic' : ['mineral', 'minerality', 'flinty', 'lend', 'rubbery', 'tar', 'menthol', 'graphite'],
@@ -33,6 +33,7 @@ original_categories = {
 #        }
 
 given_categories = original_categories
+categories = ['fruit', 'spice', 'floral', 'oak', 'herb', 'inorganic']
 added_categories = {'fruit': [], 'spice': [], 'floral': [], 'inorganic': [], 'herb': [], 'oak': []}
 
 wordlist = []
@@ -47,7 +48,7 @@ dictionary = 'wine_dictionary.csv'
 caveman = 'caveman_data.csv'
 board = 'wine_board.csv'
 num = 5
-cutoff = 0.5
+cutoff = 0.6
 
 myMan = Caveman(fileName, stoplist)
 tokes = myMan.write_reviews(caveman, reviewCount)
@@ -111,50 +112,40 @@ def calculate_distances():
         # for each added list
         for term in val:
             #for each added term
-            lem = wordnet_lemmatizer.lemmatize(term)
-            fruit_sum = 0
-            fruit_ct = len(given_categories['fruit'])
-            for given_term in given_categories['fruit']:
-                given_lem = wordnet_lemmatizer.lemmatize(given_term)
-                try:
-                    #try to find distance
-                    term_distance = word_vectors.similarity(term, given_term)
-                except:
-                    try:
-                        term_distance = word_vectors.similarity(lem, given_term)
-                    except:
-                        print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
-                        term_distance = 0
-                        fruit_ct -= 1 
-                fruit_sum += term_distance
-            
-            oak_sum = 0
-            oak_ct = len(given_categories['spice'])
-            for given_term in given_categories['spice']:
-                given_lem = wordnet_lemmatizer.lemmatize(term)
-                try:
-                    #try to find distance
-                    term_distance = word_vectors.similarity(term, given_term)
-                except:
-                    try:
-                        term_distance = word_vectors.similarity(lem, given_lem)
-                    except:
-                        print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
-                        term_distance = 0
-                        oak_ct -= 1 
-                oak_sum += term_distance
+            vec = []
+            for category in categories:
+                vec.append(calculator_helper(term, category))
+                
 
-            # append averages
-            fruit_avg = 0
-            if fruit_sum != 0:
-                fruit_avg = fruit_sum/fruit_ct
-
-            oak_avg = 0
-            if oak_sum != 0:
-                oak_avg = oak_sum/oak_ct
-
-            X.append([fruit_avg, oak_avg])
+            X.append(vec)
             y.append([term, key])
+
+def calculator_helper(term, category):
+    lem = wordnet_lemmatizer.lemmatize(term)
+    term_sum = 0
+    term_ct = len(given_categories[category])
+    for given_term in given_categories[category]:
+        given_lem = wordnet_lemmatizer.lemmatize(given_term)
+        try:
+            #try to find distance
+            term_distance = word_vectors.similarity(term, given_term)
+        except:
+            try:
+                term_distance = word_vectors.similarity(lem, given_term)
+            except:
+                print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
+                term_distance = 0
+                term_ct -= 1 
+        term_sum += term_distance
+
+    # append averages
+    term_avg = 0
+    if term_sum != 0:
+        term_avg = term_sum/term_ct
+
+    return term_avg
+
+
 
 def reshuffle_results():
     for key, val in added_categories.iteritems():
@@ -227,6 +218,20 @@ def run_neighbors():
 
     plt.show()
 
+def write_vectors():
+    categories.insert(0, "category")
+    categories.insert(0, "term")
+    csvRows = []
+    csvRows.append(categories)
+    for i in range(len(X)):
+        csvRows.append(y[i] + X[i])
+        print "{} -- {}".format(X[i], y[i])
+
+    myFile = open('vectors.csv', 'w')
+    with myFile:
+        writer = csv.writer(myFile)
+        writer.writerows(csvRows)
+
 comb_categories(passes)
 print_results(passes)
 calculate_distances()
@@ -243,7 +248,9 @@ comb_categories(passes)
 print_results(passes)
 calculate_distances()
 reshuffle_results()
-run_neighbors()
+write_vectors()
+#run_neighbors()
+
 
 
 #sortedCsv = sorted(csvList, key=lambda k: k['weight'], reverse=True)
