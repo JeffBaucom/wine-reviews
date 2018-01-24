@@ -4,6 +4,7 @@ from caveman_sommelier import Caveman
 from nltk.stem import WordNetLemmatizer
 from matplotlib.colors import ListedColormap
 from sklearn import neighbors
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -48,7 +49,9 @@ dictionary = 'wine_dictionary.csv'
 caveman = 'caveman_data.csv'
 board = 'wine_board.csv'
 num = 5
-cutoff = 0.6
+cutoff = 0.70
+dupeCutoff = .90
+misses = 0
 
 myMan = Caveman(fileName, stoplist)
 tokes = myMan.write_reviews(caveman, reviewCount)
@@ -80,10 +83,14 @@ def comb_categories(passes):
                         if i[0] not in added_categories[catKey] and i[0] not in given_categories[catKey] and i[0] not in wordlist and i[0][1] > cutoff:
                             added_categories[catKey].append(i[0])
                             wordlist.append(i[0])
+                        elif i[0] not in added_categories[catKey] and i[0] not in given_categories[catKey] and i[0][1] > dupeCutoff:
+                            added_categories[catKey].append(i[0])
                 elif term_list[0][0] in given_categories[catKey] and item_dict['max'] > cutoff:
                     if key not in added_categories[catKey] and key not in given_categories[catKey] and key not in wordlist:
                         added_categories[catKey].append(key)
                         wordlist.append(key)
+                    elif key not in added_categories[catKey] and key not in given_categories[catKey] and item_dict['max'] > dupeCutoff:
+                        added_categories[catKey].append(key)
 
             for idx, val in enumerate(term_list):
                 string = "word" + str(idx + 1)
@@ -121,10 +128,15 @@ def calculate_distances():
             y.append([term, key])
 
 def calculator_helper(term, category):
+    global misses
     lem = wordnet_lemmatizer.lemmatize(term)
     term_sum = 0
     term_ct = len(given_categories[category])
-    for given_term in given_categories[category]:
+    catList = given_categories[category]
+    maxVal = 0
+    if category not in catList:
+        catList.append(category)
+    for given_term in catList:
         given_lem = wordnet_lemmatizer.lemmatize(given_term)
         try:
             #try to find distance
@@ -133,17 +145,29 @@ def calculator_helper(term, category):
             try:
                 term_distance = word_vectors.similarity(lem, given_term)
             except:
-                print "{} or {} not found, {} {}".format(term, given_term, lem, given_lem)
-                term_distance = 0
-                term_ct -= 1 
+                try:
+                    term_distance = word_vectors.similarity(term, given_lem)
+                except:
+                    try:
+                        term_distance = word_vectors.similarity(term, given_lem)
+                    except:
+                        try:
+                            term_distance = word_vectors.similarity(lem, given_lem)
+                        except:
+                            misses += 1
+                            term_distance = 0
+                            term_ct -= 1 
+        if term_distance > maxVal and term_distance < 1:
+            maxVal = term_distance
         term_sum += term_distance
 
     # append averages
     term_avg = 0
     if term_sum != 0:
         term_avg = term_sum/term_ct
+        term_avg += (maxVal - term_avg)/2
 
-    return term_avg
+    return maxVal
 
 
 
@@ -156,13 +180,18 @@ def reshuffle_results():
 def run_neighbors():
 
 
-    n_neighbors = 7
+    n_neighbors = 11
 
     h = .02
     global X
     global y
+    print(X)
 
-    X = np.array(X)
+    pca = PCA(n_components = 2)
+    X2D = pca.fit_transform(X)
+    print(X2D)
+
+    X = np.array(X2D)
     y = np.array(y)
     print X
     y = y[:, 1:2]
@@ -187,8 +216,8 @@ def run_neighbors():
     print y
 
     # Create color maps
-    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])#, '#FFFFAA', '#800080', '#D2691E'])
-    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])#, '#FFFF00', '#FF00FF', '#8B4513'])
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF', '#FFFFAA', '#800080', '#D2691E'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#8B4513'])
 
     for weights in ['uniform', 'distance']:
         # we create an instance of Neighbours Classifier and fit the data.
@@ -197,8 +226,8 @@ def run_neighbors():
 
         # Plot the decision boundary. For that, we will assign a color to each
         # point in the mesh [x_min, x_max]x[y_min, y_max].
-        x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 0.2
-        y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() - 0.2
+        x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+        y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
         xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
                              np.arange(y_min, y_max, h))
         Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
@@ -232,24 +261,19 @@ def write_vectors():
         writer = csv.writer(myFile)
         writer.writerows(csvRows)
 
-comb_categories(passes)
-print_results(passes)
-calculate_distances()
-reshuffle_results()
-comb_categories(passes)
-print_results(passes)
-calculate_distances()
-reshuffle_results()
-comb_categories(passes)
-print_results(passes)
-calculate_distances()
-reshuffle_results()
-comb_categories(passes)
-print_results(passes)
-calculate_distances()
-reshuffle_results()
+def comb_and_calculate(n):
+    global passes
+    for i in range(n):
+        comb_categories(passes)
+        print_results(passes)
+        calculate_distances()
+        reshuffle_results()
+
+comb_and_calculate(3)
+print misses
 write_vectors()
-#run_neighbors()
+run_neighbors()
+
 
 
 
