@@ -5,6 +5,7 @@ from nltk.stem import WordNetLemmatizer
 from matplotlib.colors import ListedColormap
 from sklearn import neighbors
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import MultiLabelBinarizer
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -36,6 +37,7 @@ original_categories = {
 given_categories = original_categories
 categories = ['fruit', 'spice', 'floral', 'oak', 'herb', 'inorganic']
 added_categories = {'fruit': [], 'spice': [], 'floral': [], 'inorganic': [], 'herb': [], 'oak': []}
+added_terms = {}
 
 wordlist = []
 for key, val in given_categories.iteritems():
@@ -49,7 +51,7 @@ dictionary = 'wine_dictionary.csv'
 caveman = 'caveman_data.csv'
 board = 'wine_board.csv'
 num = 5
-cutoff = 0.70
+cutoff = 0.80
 dupeCutoff = .90
 misses = 0
 
@@ -83,14 +85,26 @@ def comb_categories(passes):
                         if i[0] not in added_categories[catKey] and i[0] not in given_categories[catKey] and i[0] not in wordlist and i[0][1] > cutoff:
                             added_categories[catKey].append(i[0])
                             wordlist.append(i[0])
+                            if i[0] not in added_terms.keys():
+                                added_terms[i[0]] = set()
+                            added_terms[i[0]].add(catKey)
                         elif i[0] not in added_categories[catKey] and i[0] not in given_categories[catKey] and i[0][1] > dupeCutoff:
                             added_categories[catKey].append(i[0])
+                            if i[0] not in added_terms.keys():
+                                added_terms[i[0]] = set()
+                            added_terms[i[0]].add(catKey)
                 elif term_list[0][0] in given_categories[catKey] and item_dict['max'] > cutoff:
                     if key not in added_categories[catKey] and key not in given_categories[catKey] and key not in wordlist:
                         added_categories[catKey].append(key)
                         wordlist.append(key)
+                        if key not in added_terms.keys():
+                            added_terms[key] = set()
+                        added_terms[key].add(catKey)
                     elif key not in added_categories[catKey] and key not in given_categories[catKey] and item_dict['max'] > dupeCutoff:
                         added_categories[catKey].append(key)
+                        if key not in added_terms.keys():
+                            added_terms[key] = set()
+                        added_terms[key].add(catKey)
 
             for idx, val in enumerate(term_list):
                 string = "word" + str(idx + 1)
@@ -115,17 +129,16 @@ def print_results(passes):
         print "{} : {}".format(key, outList)
 
 def calculate_distances():
-    for key, val in added_categories.iteritems():
+    for key, val in added_terms.iteritems():
         # for each added list
-        for term in val:
-            #for each added term
-            vec = []
-            for category in categories:
-                vec.append(calculator_helper(term, category))
-                
+        #for each added term
+        vec = []
+        for category in categories:
+            vec.append(calculator_helper(key, category))
+            
 
-            X.append(vec)
-            y.append([term, key])
+        X.append(vec)
+        y.append([key, val])
 
 def calculator_helper(term, category):
     global misses
@@ -167,7 +180,7 @@ def calculator_helper(term, category):
         term_avg = term_sum/term_ct
         term_avg += (maxVal - term_avg)/2
 
-    return maxVal
+    return term_avg
 
 
 
@@ -180,40 +193,61 @@ def reshuffle_results():
 def run_neighbors():
 
 
-    n_neighbors = 11
+    n_neighbors = 7
 
     h = .02
     global X
     global y
-    print(X)
 
     pca = PCA(n_components = 2)
     X2D = pca.fit_transform(X)
-    print(X2D)
+    nY = []
+    for i in y:
+        tempList = list(i[1])
+        #print i
+        #print tempList
+        for j in range(len(tempList)):
+            val = tempList[j]
+            if val == u'fruit':
+                tempList[j] = 0
+            elif val == u'floral':
+                tempList[j] = 1
+            elif val == u'inorganic':
+                tempList[j] = 2
+            elif val == u'herb':
+                tempList[j] = 3
+            elif val == u'oak': #  or 
+                tempList[j] = 4
+            else:
+                tempList[j] = 5
+        nY.append(sorted(tempList))
 
     X = np.array(X2D)
-    y = np.array(y)
+    #y = np.array(nY)
     print X
-    y = y[:, 1:2]
-    y = y.flatten()
-    nY = []
-    for val in np.nditer(y):
-        if val == u'fruit':
-            nY.append(0)
-        elif val == u'floral':
-            nY.append(1)
-        elif val == u'inorganic':
-            nY.append(2)
-        elif val == u'herb':
-            nY.append(3)
-        elif val == u'oak': #  or 
-            nY.append(4)
-        else:
-            nY.append(5)
+    #y = y[:, 1:2]
+    print nY
+    y = MultiLabelBinarizer().fit_transform(nY)
+    print y[:, 0]
 
-    y = np.array(nY)
+    #y = y.flatten()
+#    nY = []
+#    for val in np.nditer(y):
+#        if val == u'fruit':
+#            nY.append(0)
+#        elif val == u'floral':
+#            nY.append(1)
+#        elif val == u'inorganic':
+#            nY.append(2)
+#        elif val == u'herb':
+#            nY.append(3)
+#        elif val == u'oak': #  or 
+#            nY.append(4)
+#        else:
+#            nY.append(5)
+#
+#    y = np.array(nY)
 
-    print y
 
     # Create color maps
     cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF', '#FFFFAA', '#800080', '#D2691E'])
@@ -222,7 +256,7 @@ def run_neighbors():
     for weights in ['uniform', 'distance']:
         # we create an instance of Neighbours Classifier and fit the data.
         clf = neighbors.KNeighborsClassifier(n_neighbors, weights=weights)
-        clf.fit(X, y)
+        print clf.fit(X, y)
 
         # Plot the decision boundary. For that, we will assign a color to each
         # point in the mesh [x_min, x_max]x[y_min, y_max].
@@ -230,16 +264,27 @@ def run_neighbors():
         y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
         xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
                              np.arange(y_min, y_max, h))
-        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+        #Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
 
         # Put the result into a color plot
-        Z = Z.reshape(xx.shape)
-        plt.figure()
-        plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+        #Z = Z.reshape(xx.shape)
+        #plt.figure()
+        #plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
 
         # Plot also the training points
-        plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold,
-                    edgecolor='k', s=20)
+        plt.scatter(X[:, 0], X[:, 1], c='gray', edgecolor=(0, 0 , 0), s=260)
+        zero_class = np.where(y[:, 0])
+        first_class = np.where(y[:, 1])
+        second_class = np.where(y[:, 2])
+        third_class = np.where(y[:, 3])
+        fourth_class = np.where(y[:, 4])
+        #fifth_class = np.where(y[:, 5])
+        plt.scatter(X[zero_class, 0], X[zero_class, 1], c='red', edgecolor='k', s=160, facecolors='none')
+        plt.scatter(X[first_class, 0], X[first_class, 1], c='green', edgecolor='k', s=80, facecolors='none')
+        plt.scatter(X[second_class, 0], X[second_class, 1], c='blue', edgecolor='k', s=40, facecolors='none')
+        plt.scatter(X[third_class, 0], X[third_class, 1], c='orange', edgecolor='k', s=20, facecolors='none')
+        plt.scatter(X[fourth_class, 0], X[fourth_class, 1], c='yellow', edgecolor='k', s=5, facecolors='none')
+        #plt.scatter(X[fifth_class, 0], X[fifth_class, 1], c='black', edgecolor='k', s=40, facecolors='none')
         plt.xlim(xx.min(), xx.max())
         plt.ylim(yy.min(), yy.max())
         plt.title("3-Class classification (k = %i, weights = '%s')"
@@ -263,13 +308,15 @@ def write_vectors():
 
 def comb_and_calculate(n):
     global passes
+
     for i in range(n):
         comb_categories(passes)
         print_results(passes)
-        calculate_distances()
         reshuffle_results()
 
-comb_and_calculate(3)
+    calculate_distances()
+
+comb_and_calculate(5)
 print misses
 write_vectors()
 run_neighbors()
