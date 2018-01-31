@@ -3,6 +3,7 @@ from nltk.tokenize import sent_tokenize
 import csv
 import sys
 import string
+import codecs
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -15,7 +16,7 @@ class Caveman(object):
         self.stoplist = set(stoplist.split())
 
     def write_reviews(self, outName, reviewCount):
-        with open(self.fN, 'rb') as csvfile:
+        with codecs.open(self.fN, 'r', encoding='utf-8', errors='ignore') as csvfile:
             wordnet_lemmatizer = WordNetLemmatizer()
             reader = csv.DictReader(csvfile)
             sents = []
