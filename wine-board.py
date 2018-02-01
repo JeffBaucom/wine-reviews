@@ -1,6 +1,6 @@
 from wine_dictionary import WineDictionary
-from gensim.models import Word2Vec
 from caveman_sommelier import Caveman
+from gensim.models import Word2Vec
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import sent_tokenize
 from matplotlib.colors import ListedColormap
@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import accuracy_score
 import codecs
+import string
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -28,7 +29,6 @@ original_categories = {
         'herb' : ['mint', 'sage', 'leaf', 'tobacco', 'bramble', 'stalky', 'leafy', 'minty', 'medicinal'],
         'inorganic' : ['mineral', 'minerality', 'flinty', 'rubbery', 'tar', 'menthol', 'graphite'],
     }
-keywords = [['blackberry', 'blackcherry', 'boysenberry', 'blueberry', 'blackberry'], ['strawberry', 'raspberry', 'pomegranate', 'cranberry', 'currant', 'cherry'], ['grapefruit', 'lemon', 'lime', 'zest', 'peel', 'rind', 'mandarin', 'orange'], ['pineapple', 'mango', 'guava', 'lychee', 'banana', 'passion', 'melon'], ['pear', 'apple', 'peach', 'apricot', 'stonefruit', 'honey'], ['wood', 'woody', 'toast', 'cream', 'creamy', 'coconut', 'oaky', 'coffee', 'butter', 'buttered'], ['spiced', 'spicy', 'cinnamon', 'nutmeg', 'clove', 'cardamom', 'anise', 'cocoa', 'pepper', 'licorice', 'peppercorn'], ['honeysuckle', 'lavender', 'jasmine', 'rose', 'violet', 'blossom', 'chamomile'], ['tomato', 'lettuce', 'tobacco', 'eucalyptus', 'hay', 'leafy'], ['sage', 'thyme', 'mint', 'grass', 'medicinal', 'juniper'], ['menthol', 'forest', 'bramble', 'leather', 'musk', 'truffle', 'floor', 'balsamic', 'smoke', 'espresso', 'mineral', 'tar', 'flinty', 'minerality', 'graphite', 'rubbery', 'gritty', 'rugged']]
 #{
 #        'fruit': ['jammy', 'ripe', 'juicy', 'fleshy', 'plummy', 'berry', 'cassis', 'citrus', 'stonefruit', 'tropicalfruit', 'redfruit', 'melon', 'apple', 'pear', 'mango', 'lime', 'cherry'],
 #        'spice': ['pepper', 'clove', 'anise', 'cinammon', 'nutmeg', 'saffron', 'ginger', 'spicy'], 
@@ -38,8 +38,6 @@ keywords = [['blackberry', 'blackcherry', 'boysenberry', 'blueberry', 'blackberr
 #        'inorganic': ['mineral', 'graphite', 'petroleum', 'plastic', 'rubber', 'tar']
 #        }
 
-categories = ['black', 'red', 'citrus', 'tropical', 'tree', 'oak', 'spice', 'floral', 'vegetal', 'herb', 'earthy']
-given_categories = original_categories
 
 
 #def run_neighbors(test):
@@ -164,11 +162,18 @@ class WineClassifier(object):
     def train(self, x_train, y_train):
         h = .02
 
+        #x_train = np.asarray(x_train)
+
+        new_x = np.zeros((len(x_train), len(x_train[0])))
+        for i in range(0, len(x_train)):
+            new_x[i] = np.reshape(x_train[i], len(x_train[0]))
+        
+        x_train = new_x
         X2D = self.pca.fit_transform(x_train)
 
         nY = []
         for i in y_train:
-            tempList = list(i[1])
+            tempList = i
             for j in range(len(tempList)):
                 val = tempList[j]
                 tempList[j] = self.categories.index(tempList[j])
@@ -179,24 +184,49 @@ class WineClassifier(object):
         return self.clf.fit(X, y)
 
     def predict(self, x_test):
+        new_x = np.zeros((len(x_test), len(x_test[0])))
+        for i in range(0, len(x_test)):
+            new_x[i] = np.reshape(x_test[i], len(x_test[0]))
+        
+        x_test = new_x
+        print x_test
         X2D = self.pca.transform(x_test)
         return self.clf.predict(X2D)
 
 
 class WineBoard(object):
+    """
+    Driver class for the project
+    TODO: Pull processing and calculations into a separate class
 
-    def __init__(self, stopList, categories, keywords):
+    Attributes
+    ----------
+    added_terms : dictionary<str: [str]>
+        list of terms added in most recent pass
+    wordlist: [str]
+        list of words already added to the training set
+    x_train: [[float]]
+        list of vectors that represents the training set raw values
+    y_train: [[int]]
+        matrix of integers that represent the categories of the corresponding x_train elements
+    """
+
+    def __init__(self, stopList, categories, keywords, weights):
         self.added_terms = {}
         self.wordlist = []
         self.x_train = []
         self.y_train = []
+        self.x_wine_train = []
+        self.y_wine_train = []
+        self.x_wine_pred = []
+        self.y_wine_pred = []
 
         tolerance = 300
         reviewCount = 50000
         dictionary = 'wine_dictionary.csv'
         caveman = 'caveman_data.csv'
         board = 'wine_board.csv'
-        self.cutoff = 0.70
+        self.cutoff = 0.80
         self.dupeCutoff = .90
         self.misses = 0
         self.passes = 0
@@ -224,8 +254,10 @@ class WineBoard(object):
             self.word_vectors = Word2Vec(tokes)
 
         self.given_categories = {}
+        self.original_categories = {} 
         for index in range(len(categories)):
             self.given_categories[categories[index]] = keywords[index]
+            self.original_categories[categories[index]] = keywords[index]
 
         print self.given_categories
 
@@ -233,6 +265,11 @@ class WineBoard(object):
             self.wordlist = self.wordlist + val
 
         self.WordClassifier = WordClassifier('distance', 7, self.categories)
+        self.WineClassifier = WineClassifier('distance', 7, self.categories)
+
+        self.cutoffs = {}
+        for i in categories:
+            self.cutoffs[i] = weights[self.categories.index(i)]
 
 
     def calculator_helper(self, term, category):
@@ -241,8 +278,8 @@ class WineBoard(object):
         term_ct = len(self.given_categories[category])
         catList = self.given_categories[category]
         maxVal = 0
-        if category not in catList:
-            catList.append(category)
+        #if category not in catList:
+        #    catList.append(category)
         for given_term in catList:
             given_lem = self.wordnet_lemmatizer.lemmatize(given_term)
             try:
@@ -265,7 +302,6 @@ class WineBoard(object):
                 maxVal = term_distance
             term_sum += term_distance
 
-        # append averages
         term_avg = 0
         if term_sum != 0:
             term_avg = term_sum/term_ct
@@ -284,9 +320,9 @@ class WineBoard(object):
                 item_dict['weight'] = math.floor(value)
                 item_dict['max'] = term_list[num - 1][1]
                 for catKey, catVal in self.given_categories.iteritems():
-                    if key in self.given_categories[catKey] and item_dict['max'] > self.cutoff:
+                    if key in self.given_categories[catKey] and item_dict['max'] > self.cutoffs[catKey]:
                         for i in term_list:
-                            if i[0] not in self.added_categories[catKey] and i[0] not in self.given_categories[catKey] and i[0] not in self.wordlist and i[0][1] > self.cutoff:
+                            if i[0] not in self.added_categories[catKey] and i[0] not in self.given_categories[catKey] and i[0] not in self.wordlist and i[0][1] > self.cutoffs[catKey]:
                                 self.added_categories[catKey].append(i[0])
                                 self.wordlist.append(i[0])
                                 if i[0] not in self.added_terms.keys():
@@ -297,7 +333,7 @@ class WineBoard(object):
                                 if i[0] not in self.added_terms.keys():
                                     self.added_terms[i[0]] = set()
                                 self.added_terms[i[0]].add(catKey)
-                    elif term_list[0][0] in self.given_categories[catKey] and item_dict['max'] > self.cutoff:
+                    elif term_list[0][0] in self.given_categories[catKey] and item_dict['max'] > self.cutoffs[catKey]:
                         if key not in self.added_categories[catKey] and key not in self.given_categories[catKey] and key not in self.wordlist:
                             self.added_categories[catKey].append(key)
                             self.wordlist.append(key)
@@ -329,6 +365,11 @@ class WineBoard(object):
             print "{} : {}".format(key, outList)
 
     def calculate_distances(self):
+        for key, val in self.original_categories.iteritems():
+            for word in val:
+                if word not in self.added_terms.keys():
+                    self.added_terms[word] = set()
+                self.added_terms[word].add(key)
         for key, val in self.added_terms.iteritems():
             # for each added list
             #for each added term
@@ -383,22 +424,61 @@ class WineBoard(object):
     def train_wines(self, n):
         words = self.parse_reviews(n)
         vector = self.calculate_reviews(n, words)
+        categories_matrix = self.parse_categories(n)
+        mid = n/2
+        training_vector = vector[0:mid]
+        prediction_vector = vector[mid:len(vector)]
+        self.y_wine_train = categories_matrix[0:mid]
+        self.y_wine_pred = categories_matrix[mid:len(words)]
 
         outs = []
-        for i in range(n):
+        for i in range(len(vector)):
             outs.append(self.WordClassifier.predict(vector[i]))
 
         outs = np.array(outs)
+        np_vectors = np.array(vector)
         for j in range(len(outs)):
             #print outs[j]
-            for k in range(len(outs[j])):
-                outs[j][k] = np.multiply(outs[j][k], len(words[j][k]))
+            #for k in range(len(outs[j])):
+                #outs[j][k] = np.multiply(outs[j][k], len(words[j][k]))
             outs[j] = np.mean(outs[j], axis=0)
+            np_vectors[j] = np.mean(np_vectors[j], axis=0)
+            outs[j] = np.append(outs[j], np_vectors[j])
             #print outs[j]
             #print words[j]
-            for val in range(len(self.categories)):
-                print "{}: {}".format(self.categories[val], outs[j][val])
-            print ' '.join(map(str, words[j]))
+            #for val in range(len(self.categories)):
+            #    print "{}: {}".format(self.categories[val], outs[j][val])
+            #print ' '.join(map(str, words[j]))
+
+        self.x_wine_train = outs[0:mid]
+        self.x_wine_pred = outs[mid:len(outs)]
+        #print self.x_wine_train
+        #print self.y_wine_train
+        self.WineClassifier.train(self.x_wine_train, self.y_wine_train)
+        result = self.WineClassifier.predict(self.x_wine_pred)
+        resultMatrix = []
+        for i in range(0, len(result)):
+            wine = result[i]
+            expected = ' '.join(self.y_wine_pred[i])
+            resultMatrix.append([])
+            resultMatrix[i].append(expected)
+            resultMatrix[i].append(set())
+            resultMatrix[i].append(words[mid + i])
+            for idx in range(0, len(wine)):
+                if wine[idx] == 1:
+                    resultMatrix[i][1].add(self.categories[idx])
+        print resultMatrix
+        for i in resultMatrix:
+            print "Expected: {} - Result: {}".format(i[0], list(i[1]))
+            print "Review: \"{}\"".format(i[2])
+                    
+                    
+
+        #print prediction_vector
+        #print training_vector
+
+        
+        
         
 
 
@@ -422,7 +502,24 @@ class WineBoard(object):
                         review.append(word)
 
                 reviews.append(review)
+
         return reviews
+
+    def parse_categories(self, n):
+        with codecs.open('training_wines_2.csv', 'r', encoding='utf-8', errors='ignore') as trainingfile:
+            reader = csv.DictReader(trainingfile)
+            out = []
+            index = 0
+            while index < n:
+                nextDict = reader.next()
+                wine_categories = nextDict['categories']
+                wine_categories = wine_categories.lower().translate(None, string.punctuation).split()
+
+                out.append(wine_categories)
+                index += 1
+
+        return out
+
 
     def calculate_reviews(self, n, reviews):
         totalReviews = []
@@ -438,8 +535,12 @@ class WineBoard(object):
             totalReviews.append(reviewVector)
         return totalReviews
 
+keywords = [['blackberry', 'blackcherry', 'boysenberry', 'blueberry', 'blackberry'], ['strawberry', 'raspberry', 'pomegranate', 'cranberry', 'currant', 'cherry'], ['grapefruit', 'lemon', 'lime', 'zest', 'peel', 'rind', 'mandarin', 'orange', 'sour'], ['pineapple', 'mango', 'guava', 'lychee', 'banana', 'passion', 'melon', 'tropical'], ['pear', 'apple', 'peach', 'apricot', 'stonefruit'], ['wood', 'woody', 'toast', 'cream', 'creamy', 'coconut', 'oaky', 'coffee', 'butter', 'buttered', 'cigar'], ['spiced', 'spicy', 'cinnamon', 'nutmeg', 'clove', 'cardamom', 'anise', 'cocoa', 'pepper', 'licorice', 'peppercorn'], ['honey', 'honeysuckle', 'lavender', 'jasmine', 'rose', 'violet', 'blossom', 'chamomile'], ['tomato', 'lettuce', 'tobacco', 'eucalyptus', 'hay', 'leafy'], ['sage', 'thyme', 'mint', 'grass', 'medicinal', 'juniper', 'herb', 'herbaceous'], ['menthol', 'forest', 'bramble', 'leather', 'musk', 'truffle', 'floor', 'balsamic', 'smoke', 'espresso', 'mineral', 'tar', 'flinty', 'minerality', 'graphite', 'rubbery', 'gritty', 'rugged', 'earthy']]
+categories = ['black', 'red', 'citrus', 'tropical', 'tree', 'oak', 'spice', 'floral', 'vegetal', 'herb', 'earthy']
+weights = [0.75, 0.75, 0.77, 0.77, 0.78, 0.80, 0.83, 0.78, 0.79, 0.80, 0.85]
+given_categories = original_categories
 
 print categories
-myBoard = WineBoard(stoplist, categories, keywords)
-myBoard.train_words(4)
-myBoard.train_wines(10)
+myBoard = WineBoard(stoplist, categories, keywords, weights)
+myBoard.train_words(3)
+myBoard.train_wines(124)
