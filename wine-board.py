@@ -100,6 +100,7 @@ class WineBoard(object):
         self.given_categories = {}
         self.original_categories = {} 
         for index in range(len(categories)):
+            print index
             self.given_categories[categories[index]] = keywords[index]
             self.original_categories[categories[index]] = keywords[index]
 
@@ -243,10 +244,10 @@ class WineBoard(object):
             writer.writerows(csvRows)
 
     def train_words(self, n):
-        for i in range(n):
-            self.comb_categories()
-            self.print_results()
-            self.reshuffle_results()
+        #for i in range(n):
+            #self.comb_categories()
+            #self.print_results()
+            #self.reshuffle_results()
 
         self.calculate_distances()
         self.WordClassifier.train(self.x_train, self.y_train)
@@ -357,17 +358,17 @@ class WineBoard(object):
         return totalReviews
 
 keywords = [
-        ['blackberry', 'blackcherry', 'boysenberry', 'blueberry', 'blackberry', 'mulberry', 'cassis'],
-        ['strawberry', 'raspberry', 'pomegranate', 'cranberry', 'currant', 'cherry'], 
-        ['grapefruit', 'lemon', 'lime', 'zest', 'peel', 'rind', 'mandarin', 'orange', 'sour'],
-        ['pineapple', 'mango', 'guava', 'lychee', 'banana', 'passion', 'melon', 'tropical'],
-        ['pear', 'apple', 'peach', 'apricot', 'stonefruit', 'nectarine'],
-        ['wood', 'woody', 'toast', 'cream', 'creamy', 'coconut', 'oaky', 'coffee', 'butter', 'buttered', 'cigar'],
-        ['spiced', 'spicy', 'cinnamon', 'nutmeg', 'clove', 'cardamom', 'anise', 'cocoa', 'pepper', 'licorice', 'peppercorn'],
-        ['honey', 'honeysuckle', 'lavender', 'jasmine', 'rose', 'violet', 'blossom', 'chamomile'],
-        ['tomato', 'lettuce', 'tobacco', 'eucalyptus', 'hay', 'leafy'],
-        ['sage', 'thyme', 'mint', 'grass', 'medicinal', 'juniper', 'herb', 'herbaceous'],
-        ['menthol', 'forest', 'bramble', 'leather', 'musk', 'truffle', 'floor', 'balsamic', 'smoke', 'espresso', 'mineral', 'tar', 'flinty', 'minerality', 'graphite', 'rubbery', 'gritty', 'rugged', 'earthy']]
+        ['blackberry', 'blackcherry', 'boysenberry', 'blueberry', 'blackberry', 'mulberry', 'cassis', 'plum', 'darkfruit', 'darkskinned', 'black'],
+        ['strawberry', 'raspberry', 'pomegranate', 'cranberry', 'currant', 'cherry', 'red'],
+        ['grapefruit', 'lemon', 'lime', 'zest', 'peel', 'rind', 'mandarin', 'orange', 'sour', 'citrus'],
+        ['pineapple', 'mango', 'guava', 'lychee', 'banana', 'passion', 'melon', 'tropical', 'passion', 'kiwi'],
+        ['pear', 'apple', 'peach', 'apricot', 'stonefruit', 'nectarine', 'orchard', 'yellow', 'yellowfruit'],
+        ['wood', 'woody', 'toast', 'cream', 'creamy', 'coconut', 'oaky', 'coffee', 'butter', 'buttered', 'cigar', 'hickory', 'chocolate', 'caramel', 'nut', 'barrel'],
+        ['spiced', 'spicy', 'cinnamon', 'nutmeg', 'clove', 'cardamom', 'anise', 'cocoa', 'pepper', 'licorice', 'peppercorn', 'baking', 'ginger'],
+        ['honey', 'honeysuckle', 'lavender', 'jasmine', 'rose', 'violet', 'blossom', 'chamomile', 'flower', 'floral'],
+        ['tomato', 'lettuce', 'tobacco', 'eucalyptus', 'hay', 'leafy', 'cilantro', 'pepper', 'green', 'ivy'],
+        ['sage', 'thyme', 'mint', 'grass', 'medicinal', 'juniper', 'herb', 'herbaceous', 'rosemary', 'tarragon', 'green', 'marjoram'],
+        ['menthol', 'forest', 'bramble', 'leather', 'musk', 'truffle', 'floor', 'balsamic', 'smoke', 'espresso', 'mineral', 'tar', 'flinty', 'minerality', 'graphite', 'rubbery', 'gritty', 'rugged', 'earthy', 'sidewalk']]
 categories = ['black', 'red', 'citrus', 'tropical', 'tree', 'oak', 'spice', 'floral', 'vegetal', 'herb', 'earthy']
 weights =    [0.72,    0.65,  0.75,     0.77,       0.69,   0.70,   0.76,    0.77,     0.67,      0.65,   0.83]
 given_categories = original_categories

@@ -1,6 +1,7 @@
 from sklearn import neighbors
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import numpy as np
 
@@ -8,7 +9,7 @@ import numpy as np
 class WordClassifier(object):
 
     def __init__(self, weights, n_neighbors, categories):
-        self.clf = neighbors.KNeighborsClassifier(n_neighbors, weights=weights)
+        self.clf = RandomForestClassifier(n_estimators=n_neighbors)
         self.categories = categories
         print categories
         self.pca = PCA(n_components = 3) 
