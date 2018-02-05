@@ -1,5 +1,6 @@
 from sklearn import neighbors
 from sklearn.decomposition import PCA
+from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -38,6 +39,7 @@ class WineClassifier(object):
 
         X = np.array(X2D)
         y = preprocessing.MultiLabelBinarizer().fit_transform(nY)
+        print cross_val_score(self.clf, X, y)
         return self.clf.fit(X, y)
 
     def predict(self, x_test):
