@@ -250,6 +250,8 @@ class WineBoard(object):
             #self.reshuffle_results()
 
         self.calculate_distances()
+        #TODO get tuple back from training transform methods
+        self.x_train, self.y_train = self.WordClassifier.transform_training(self.x_train, self.y_train)
         self.WordClassifier.train(self.x_train, self.y_train)
 
     def train_wines(self, n):
@@ -262,9 +264,12 @@ class WineBoard(object):
         self.y_wine_train = categories_matrix[0:mid]
         self.y_wine_pred = categories_matrix[mid:len(words)]
 
+        raw_words = []
         outs = []
         for i in range(len(vector)):
-            outs.append(self.WordClassifier.predict(vector[i]))
+            wine_words = self.WordClassifier.transform_prediction(vector[i])
+            raw_words.append(wine_words)
+            outs.append(self.WordClassifier.predict(wine_words))
 
         outs = np.array(outs)
         np_vectors = np.array(vector)
@@ -276,7 +281,9 @@ class WineBoard(object):
         self.x_wine_train = outs[0:mid]
         self.x_wine_pred = outs[mid:len(outs)]
 
+        self.x_wine_train, self.y_wine_train = self.WineClassifier.transform_training(self.x_wine_train, self.y_wine_train)
         self.WineClassifier.train(self.x_wine_train, self.y_wine_train)
+        self.x_wine_pred = self.WineClassifier.transform_prediction(self.x_wine_pred)
         result = self.WineClassifier.predict(self.x_wine_pred)
         resultMatrix = []
         for i in range(0, len(result)):
@@ -301,7 +308,6 @@ class WineBoard(object):
 
             #print "Review: \"{}\"".format(i[2])
         #self.WineClassifier.show()
-        self.WordClassifier.show()
 
     def parse_reviews(self, n):
         reviews = []
