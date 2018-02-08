@@ -50,6 +50,7 @@ class WordClassifier(object):
         #print accuracy_score(y_test, y_predict)
 
     def transform_prediction(self, x_test):
+        x_test = self.scaler.transform(x_test)
         X2D = self.pca.transform(x_test)
         return X2D
 
