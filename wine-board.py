@@ -5,6 +5,7 @@ from caveman_sommelier import Caveman
 from gensim.models import Word2Vec
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import sent_tokenize
+import matplotlib.pyplot as plt
 import codecs
 import string
 import numpy as np
@@ -250,7 +251,6 @@ class WineBoard(object):
             #self.reshuffle_results()
 
         self.calculate_distances()
-        #TODO get tuple back from training transform methods
         self.x_train, self.y_train = self.WordClassifier.transform_training(self.x_train, self.y_train)
         self.WordClassifier.train(self.x_train, self.y_train)
 
@@ -308,6 +308,18 @@ class WineBoard(object):
 
             #print "Review: \"{}\"".format(i[2])
         #self.WineClassifier.show()
+        transformed_raw = []
+        raw_words = np.array(raw_words)
+        for i in raw_words:
+            for j in i:
+                transformed_raw.append(j)
+
+        raw_words = np.concatenate((self.x_train, np.array(transformed_raw)), axis=0)
+        print raw_words[:, 0]
+        print raw_words[:, 1]
+        #plt.scatter(self.x_train[:, 0], self.x_train[:, 1], alpha=0.5)
+        plt.scatter(raw_words[:, 0], raw_words[:, 1], c='r', alpha=0.5)
+        plt.show()
 
     def parse_reviews(self, n):
         reviews = []
