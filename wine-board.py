@@ -26,18 +26,6 @@ original_categories = {
         'herb' : ['mint', 'sage', 'leaf', 'tobacco', 'bramble', 'stalky', 'leafy', 'minty', 'medicinal'],
         'inorganic' : ['mineral', 'minerality', 'flinty', 'rubbery', 'tar', 'menthol', 'graphite'],
     }
-#{
-#        'fruit': ['jammy', 'ripe', 'juicy', 'fleshy', 'plummy', 'berry', 'cassis', 'citrus', 'stonefruit', 'tropicalfruit', 'redfruit', 'melon', 'apple', 'pear', 'mango', 'lime', 'cherry'],
-#        'spice': ['pepper', 'clove', 'anise', 'cinammon', 'nutmeg', 'saffron', 'ginger', 'spicy'], 
-#        'floral': ['hibiscus', 'potpourri', 'rose', 'lavender',  'geranium', 'blossom', 'violet', 'jasmine'],
-#        'oak': ['smoke', 'smoky', 'vanilla', 'cocoa', 'cream', 'coffee', 'butter'],
-#        'herb': ['vegetal', 'vegetable', 'asparagus', 'grass', 'sage', 'eucalyptus', 'dill', 'quince', 'green'],
-#        'inorganic': ['mineral', 'graphite', 'petroleum', 'plastic', 'rubber', 'tar']
-#        }
-
-
-
-
 
 class WineBoard(object):
     """
@@ -78,6 +66,8 @@ class WineBoard(object):
 
         myMan = Caveman(fileName, stoplist)
         tokes = myMan.write_reviews(caveman, reviewCount)
+        self.locs = myMan.parse_geovariety(reviewCount)
+        print self.locs
         myDictionary = WineDictionary(fileName)
         self.vocab = myDictionary.write_dictionary(dictionary, tolerance)
         self.categories = categories
@@ -401,6 +391,6 @@ given_categories = original_categories
 
 print categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
-myBoard.train_words(4)
-myBoard.train_wines(220)
-plt.show()
+#myBoard.train_words(4)
+#myBoard.train_wines(220)
+#plt.show()

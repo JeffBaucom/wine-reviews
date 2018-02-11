@@ -15,6 +15,22 @@ class Caveman(object):
         self.fN = fileName
         self.stoplist = set(stoplist.split())
 
+    def parse_geovariety(self, reviewCount):
+        with codecs.open(self.fN, 'r', encoding='utf-8', errors='ignore') as csvfile:
+            reader = csv.DictReader(csvfile);
+            index = 0
+            objs = []
+            while index < reviewCount:
+                wine_obj = {}
+                nextDict = reader.next()
+                wine_obj['variety'] = nextDict['variety']
+                wine_obj['province'] = nextDict['province']
+                wine_obj['country'] = nextDict['country']
+                objs.append(wine_obj)
+                index += 1
+
+        return objs
+
     def write_reviews(self, outName, reviewCount):
         with codecs.open(self.fN, 'r', encoding='utf-8', errors='ignore') as csvfile:
             wordnet_lemmatizer = WordNetLemmatizer()
