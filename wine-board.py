@@ -251,6 +251,9 @@ class WineBoard(object):
             #self.reshuffle_results()
 
         self.calculate_distances()
+        self.all_words = np.array(self.y_train)
+        self.all_words = self.all_words[:, 0]
+        print self.all_words
         self.x_train, self.y_train = self.WordClassifier.transform_training(self.x_train, self.y_train)
         self.WordClassifier.train(self.x_train, self.y_train)
 
@@ -317,7 +320,7 @@ class WineBoard(object):
         def onpick(event):
             ind = event.ind
             print event
-            print ind
+            print self.all_words[ind]
         fig, ax = plt.subplots()
         col = ax.scatter(raw_words[:, 0], raw_words[:, 1], c='r', alpha=0.5, picker=True)
         fig.canvas.mpl_connect('pick_event', onpick)
@@ -371,6 +374,7 @@ class WineBoard(object):
         for i in range(0, n): 
             reviewVector = []
             for word in reviews[i]:
+                self.all_words = np.append(self.all_words, word)
                 wordVector = []
                 for category in self.categories:
                     result = self.calculator_helper(word, category)
