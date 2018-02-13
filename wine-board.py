@@ -66,7 +66,7 @@ class WineBoard(object):
 
         myMan = Caveman(fileName, stoplist)
         tokes = myMan.write_reviews(caveman, reviewCount)
-        self.locs = myMan.parse_geovariety(reviewCount)
+        self.locs, self.varieties = myMan.parse_geovariety(reviewCount)
         #print self.locs
         myDictionary = WineDictionary(fileName)
         self.vocab = myDictionary.write_dictionary(dictionary, tolerance)

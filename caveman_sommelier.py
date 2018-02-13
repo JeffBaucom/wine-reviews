@@ -19,17 +19,19 @@ class Caveman(object):
         with codecs.open(self.fN, 'r', encoding='utf-8', errors='ignore') as csvfile:
             reader = csv.DictReader(csvfile);
             index = 0
+            varieties = set()
             objs = []
             while index < reviewCount:
                 wine_obj = {}
                 nextDict = reader.next()
                 wine_obj['variety'] = nextDict['variety']
+                varieties.add(nextDict['variety'])
                 wine_obj['province'] = nextDict['province']
                 wine_obj['country'] = nextDict['country']
                 objs.append(wine_obj)
                 index += 1
 
-        return objs
+        return (objs, varieties)
 
     def write_reviews(self, outName, reviewCount):
         with codecs.open(self.fN, 'r', encoding='utf-8', errors='ignore') as csvfile:
