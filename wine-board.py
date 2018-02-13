@@ -67,7 +67,7 @@ class WineBoard(object):
         myMan = Caveman(fileName, stoplist)
         tokes = myMan.write_reviews(caveman, reviewCount)
         self.locs = myMan.parse_geovariety(reviewCount)
-        print self.locs
+        #print self.locs
         myDictionary = WineDictionary(fileName)
         self.vocab = myDictionary.write_dictionary(dictionary, tolerance)
         self.categories = categories
@@ -274,7 +274,7 @@ class WineBoard(object):
         self.x_wine_train = outs[0:mid]
         self.x_wine_pred = outs[mid:len(outs)]
 
-        self.x_wine_train, self.y_wine_train = self.WineClassifier.transform_training(self.x_wine_train, self.y_wine_train)
+        self.x_wine_train, self.y_wine_train = self.WineClassifier.transform_training(self.x_wine_train, self.y_wine_train, self.locs)
         self.WineClassifier.train(self.x_wine_train, self.y_wine_train)
         self.x_wine_pred = self.WineClassifier.transform_prediction(self.x_wine_pred)
         result = self.WineClassifier.predict(self.x_wine_pred)
@@ -389,7 +389,7 @@ categories = ['black', 'red', 'citrus', 'tropical', 'tree', 'oak', 'spice', 'flo
 weights =    [0.72,    0.65,  0.75,     0.77,       0.69,   0.70,   0.76,    0.77,     0.67,      0.65,   0.83]
 given_categories = original_categories
 
-print categories
+#print categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
 #myBoard.train_words(4)
 #myBoard.train_wines(220)
