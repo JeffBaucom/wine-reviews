@@ -235,10 +235,10 @@ class WineBoard(object):
             writer.writerows(csvRows)
 
     def train_words(self, n):
-        #for i in range(n):
-            #self.comb_categories()
-            #self.print_results()
-            #self.reshuffle_results()
+        for i in range(n):
+            self.comb_categories()
+            self.print_results()
+            self.reshuffle_results()
 
         self.calculate_distances()
         self.all_words = np.array(self.y_train)
@@ -391,6 +391,6 @@ given_categories = original_categories
 
 #print categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
-#myBoard.train_words(4)
-#myBoard.train_wines(220)
-#plt.show()
+myBoard.train_words(4)
+myBoard.train_wines(220)
+plt.show()
