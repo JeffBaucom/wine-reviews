@@ -27,6 +27,7 @@ original_categories = {
         'inorganic' : ['mineral', 'minerality', 'flinty', 'rubbery', 'tar', 'menthol', 'graphite'],
     }
 
+
 class WineBoard(object):
     """
     Driver class for the project
@@ -46,6 +47,7 @@ class WineBoard(object):
 
     def __init__(self, stopList, categories, keywords, weights):
         self.added_terms = {}
+        #TODO remove wordList
         self.wordlist = []
         self.x_train = []
         self.y_train = []
@@ -71,7 +73,10 @@ class WineBoard(object):
         myDictionary = WineDictionary(fileName)
         self.vocab = myDictionary.write_dictionary(dictionary, tolerance)
         self.categories = categories
+
+        #Is added_categories still needed?
         self.added_categories = {}
+
         for i in self.categories:
             self.added_categories[i] = []
         self.added_terms = {}
@@ -118,11 +123,10 @@ class WineBoard(object):
         lem = self.wordnet_lemmatizer.lemmatize(term)
         term_sum = 0
         term_ct = len(self.given_categories[category])
-        catList = self.given_categories[category]
         maxVal = 0
-        #if category not in catList:
         #    catList.append(category)
-        for given_term in catList:
+        for given_term in self.given_categories[category]:
+            # for each term in the category
             given_lem = self.wordnet_lemmatizer.lemmatize(given_term)
             try:
                 #try to find distance
@@ -347,6 +351,7 @@ class WineBoard(object):
                 transformed_raw.append(j)
 
         raw_words = np.concatenate((self.x_train, np.array(transformed_raw)), axis=0)
+
         def onpick(event):
             ind = event.ind
             print event
