@@ -362,7 +362,12 @@ class WineBoard(object):
         print "Please show plot"
 
     def parse_reviews(self, n):
+        """
+        Method for parsing n reviews from the caveman
+        returns an array of the reviews
+        """
         reviews = []
+        #TODO replace this with a reference to CavemanData 
         with codecs.open('caveman_data.csv', 'r', encoding='utf-8', errors='ignore') as csvfile:
             reader = csv.DictReader(csvfile)
             sents = []

@@ -7,7 +7,14 @@ from sklearn.metrics import accuracy_score
 import numpy as np
 
 class WineClassifier(object):
-
+    """
+    attributes
+    clf: classifier
+    categories: list of categories from wine board
+    pca: dimensionality reduction
+    scaler: normalizes data
+    le: label encoder
+    """
     def __init__(self, weights, n_neighbors, categories):
         self.clf = RandomForestClassifier(n_estimators= n_neighbors)
         self.categories = categories
