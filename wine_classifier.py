@@ -15,7 +15,7 @@ class WineClassifier(object):
     scaler: normalizes data
     le: label encoder
     """
-    def __init__(self, weights, n_neighbors, categories):
+    def __init__(self, weights, n_neighbors, categories, varieties):
         self.clf = RandomForestClassifier(n_estimators= n_neighbors)
         self.categories = categories
         print categories

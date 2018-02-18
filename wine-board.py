@@ -69,7 +69,8 @@ class WineBoard(object):
         myMan = Caveman(fileName, stoplist)
         tokes = myMan.write_reviews(caveman, reviewCount)
         self.locs, self.varieties = myMan.parse_geovariety(reviewCount)
-        #print self.locs
+        print self.varieties
+        print len(self.varieties)
         myDictionary = WineDictionary(fileName)
         self.vocab = myDictionary.write_dictionary(dictionary, tolerance)
         self.categories = categories
@@ -106,7 +107,7 @@ class WineBoard(object):
             self.wordlist = self.wordlist + val
 
         self.WordClassifier = WordClassifier('distance', 7, self.categories)
-        self.WineClassifier = WineClassifier('distance', 7, self.categories)
+        self.WineClassifier = WineClassifier('distance', 7, self.categories, self.varieties)
 
         self.cutoffs = {}
         for i in categories:
@@ -441,6 +442,6 @@ given_categories = original_categories
 
 #print categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
-myBoard.train_words(4)
-myBoard.train_wines(220)
-plt.show()
+#myBoard.train_words(4)
+#myBoard.train_wines(220)
+#plt.show()
