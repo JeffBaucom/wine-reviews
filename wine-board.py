@@ -321,7 +321,7 @@ class WineBoard(object):
 
         self.x_wine_train, self.y_wine_train = self.WineClassifier.transform_training(self.x_wine_train, self.y_wine_train, self.locs)
         self.WineClassifier.train(self.x_wine_train, self.y_wine_train)
-        self.x_wine_pred = self.WineClassifier.transform_prediction(self.x_wine_pred)
+        self.x_wine_pred = self.WineClassifier.transform_prediction(self.x_wine_pred, self.locs)
         result = self.WineClassifier.predict(self.x_wine_pred)
         resultMatrix = []
         for i in range(0, len(result)):
@@ -442,6 +442,6 @@ given_categories = original_categories
 
 #print categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
-#myBoard.train_words(4)
-#myBoard.train_wines(220)
+myBoard.train_words(4)
+myBoard.train_wines(220)
 #plt.show()

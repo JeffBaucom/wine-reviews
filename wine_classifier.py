@@ -27,7 +27,7 @@ class WineClassifier(object):
     def transform_training(self, x_train, y_train, locs):
         new_x = np.zeros((len(x_train), len(x_train[0])))
         for i in range(0, len(x_train)):
-            #x_train[i] = np.append(x_train[i], locs[i])
+            x_train[i] = np.append(x_train[i], self.le.transform(list(locs[i]['variety'])))
             new_x[i] = np.reshape(x_train[i], len(x_train[0]))
         
         x_train = new_x
@@ -51,9 +51,10 @@ class WineClassifier(object):
         print cross_val_score(self.clf, X, y)
         return self.clf.fit(X, y)
 
-    def transform_prediction(self, x_test):
+    def transform_prediction(self, x_test, locs):
         new_x = np.zeros((len(x_test), len(x_test[0])))
         for i in range(0, len(x_test)):
+            x_test[i] = np.append(x_test[i], self.le.transform(list(locs[i]['variety'])))
             new_x[i] = np.reshape(x_test[i], len(x_test[0]))
         
         x_test = new_x
