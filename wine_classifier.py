@@ -22,6 +22,7 @@ class WineClassifier(object):
         self.pca = PCA(n_components = 2) 
         self.scaler = preprocessing.StandardScaler()
         self.le = preprocessing.LabelEncoder()
+        self.le.fit(list(varieties))
 
     def transform_training(self, x_train, y_train, locs):
         new_x = np.zeros((len(x_train), len(x_train[0])))
