@@ -11,7 +11,7 @@ class WineDictionary(object):
     def __init__(self, fileName):
         self.fN = fileName
 
-    def write_dictionary(self, outName, tolerance):
+    def write_dictionary(self, tolerance):
         data = pandas.read_csv(self.fN, sep=',', encoding='utf-8')
 
         vectorizer = TfidfVectorizer(stop_words='english')
@@ -29,12 +29,20 @@ class WineDictionary(object):
                 ret[unicode(item[0])] = item[1]
                 out.append(itemDict)
 
-        with open(outName, 'wb') as csvfile:
+        with open("wine_dictionary", 'wb') as csvfile:
             fieldnames = ['word', 'score']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(out)
-
         return ret
 
+
+
+
+"""
+fileName = 'winemag-data-130k-v2.csv'
+wine_dictionary = WineDictionary(fileName);
+myData = wine_dictionary.write_dictionary();
+print myData.loc[1].description
+"""
 

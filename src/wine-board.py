@@ -58,7 +58,6 @@ class WineBoard(object):
 
         tolerance = 300
         reviewCount = 100000
-        dictionary = 'wine_dictionary.csv'
         caveman = 'caveman_data.csv'
         board = 'wine_board.csv'
         self.cutoff = 0.80
@@ -72,7 +71,7 @@ class WineBoard(object):
         print self.varieties
         print len(self.varieties)
         myDictionary = WineDictionary(fileName)
-        self.vocab = myDictionary.write_dictionary(dictionary, tolerance)
+        self.vocab = myDictionary.write_dictionary(tolerance)
         self.categories = categories
 
         #Is added_categories still needed?
@@ -337,14 +336,14 @@ class WineBoard(object):
             for idx in range(0, len(wine)):
                 if wine[idx] == 1:
                     resultMatrix[i][1].add(self.categories[idx])
-#        for i in range(0, len(resultMatrix)):
-#            if i < len(self.y_wine_pred):
-#                print "Expected: {} - Result: {}".format(resultMatrix[i][0], list(resultMatrix[i][1]))
-#            else:
-#                print "Result: {}".format(list(resultMatrix[i][1]))
-#                print ' '.join(words[i])
+        for i in range(0, len(resultMatrix)):
+            if i < len(self.y_wine_pred):
+                print "Expected: {} - Result: {}".format(resultMatrix[i][0], list(resultMatrix[i][1]))
+            else:
+                print "Result: {}".format(list(resultMatrix[i][1]))
+                print ' '.join(words[i])
 
-#            print "Review: \"{}\"".format(i[2])
+            print "Review: \"{}\"".format(i[2])
         transformed_raw = []
         raw_words = np.array(raw_words)
         for i in raw_words:
@@ -444,4 +443,4 @@ given_categories = original_categories
 myBoard = WineBoard(stoplist, categories, keywords, weights)
 myBoard.train_words(4)
 myBoard.train_wines(220)
-#plt.show()
+plt.show()
