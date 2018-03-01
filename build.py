@@ -17,3 +17,14 @@ class TfidfTransform(luigi.Task):
             for line in sorted_scores:
                 writer.writerow([line[0], line[1]])
 
+class VectorizeWords(luigi.Task):
+
+    def output(self):
+        return luigi.localTarget("data/word_category_vectors.csv")
+
+    def run(self):
+        pass
+
+    def requires(self):
+        pass
+
