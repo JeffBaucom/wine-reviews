@@ -3,6 +3,11 @@ import csv
 from src import wine_dictionary
 
 class TfidfTransform(luigi.Task):
+    """
+    Reads the raw data and outputs the sorted words
+    by TFIDF weight to a csv
+    Parameters: with or without lemmatization
+    """
 
     def output(self):
         return luigi.LocalTarget("data/tfidf_transform.csv")
@@ -18,6 +23,8 @@ class TfidfTransform(luigi.Task):
                 writer.writerow([line[0], line[1]])
 
 class VectorizeWords(luigi.Task):
+    """
+    """
 
     def output(self):
         return luigi.localTarget("data/word_category_vectors.csv")
@@ -27,4 +34,3 @@ class VectorizeWords(luigi.Task):
 
     def requires(self):
         pass
-
