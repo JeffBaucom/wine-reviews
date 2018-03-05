@@ -24,6 +24,22 @@ class TfidfTransform(luigi.Task):
 
 class VectorizeWords(luigi.Task):
     """
+    Reads the raw data, and outputs a gensim model for the corpus
+    """
+
+    def output(self):
+        return luigi.LocalTarget("data/models/gensim")
+
+    def run(self):
+        dictionary = wine_dictionary.WineDictionary()
+         
+
+
+    def requires(self):
+        return None
+
+class VectorizeWords(luigi.Task):
+    """
     """
 
     def output(self):

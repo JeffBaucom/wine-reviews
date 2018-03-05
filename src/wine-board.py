@@ -12,21 +12,9 @@ import numpy as np
 import math
 import csv
 
-fileName = 'winemag-data-130k-v2.csv'
 #stoplist = 'for , are its wine it\'s a of the an it with is this that from but also while on and to in'
 stopArr =  [ "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had", "has", "have", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "it", "it's", "its", "itself", "let's", "me", "more", "most", "my", "myself", "nor", "of", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "she", "she'd", "she'll", "she's", "should", "so", "some", "such", "than", "that", "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll", "they're", "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", "we", "we'd", "we'll", "we're", "we've", "were", "what", "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with", "would", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves" ]
 stoplist = ' '.join(map(str, stopArr))
-
-# Constructing fuzzy search
-original_categories = {
-        'fruit' : ['plum', 'currant', 'cherry', 'blueberry', 'pomegranate', 'cranberry', 'berry', 'apple', 'blackberry', 'citrus'],
-        'spice' : ['smoke', 'cocoa', 'spiced', 'leathery', 'spicy', 'molasses', 'woodspice', 'cedar'],
-        'floral' : ['floral', 'aromatic', 'perfume', 'rose', 'petal', 'hibiscus', 'geranium', 'lavender', 'jasmine', 'violet'],
-        'oak' : ['wood', 'barrel', 'oaky', 'chocolaty', 'raisiny', 'syrupy', 'woody'],
-        'herb' : ['mint', 'sage', 'leaf', 'tobacco', 'bramble', 'stalky', 'leafy', 'minty', 'medicinal'],
-        'inorganic' : ['mineral', 'minerality', 'flinty', 'rubbery', 'tar', 'menthol', 'graphite'],
-    }
-
 
 class WineBoard(object):
     """
