@@ -30,16 +30,17 @@ class WriteCaveman(luigi.Task):
     Parameters: with or without lemmatization
     """
     def output(self):
-        return luigi.LocalTarget("data/caveman_reviews.csv")
+        return luigi.LocalTarget("data/caveman_pickle")
 
     def run(self):
         caveman = caveman_sommelier.Caveman()
         caveman.tokenize_reviews()
         tokes_df = caveman.tokenize_reviews()
         #header = ['description', 'description_tokes']
-        f = self.output().open('w')
-        tokes_df.to_csv(f)
-        f.close()
+        f = self.output().path
+        #tokes_df.to_csv(f)
+        tokes_df.to_pickle(f)
+        #f.close()
          
     def requires(self):
         return None
