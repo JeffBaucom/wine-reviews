@@ -1,8 +1,10 @@
 from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import sent_tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tag import pos_tag
 import pandas as pd
-import csv
 import string
+import os
+import csv
 import codecs
 
 class Caveman(object):
@@ -70,3 +72,23 @@ class Caveman(object):
             return tokes
 
     def tokenize_reviews(self):
+        data = pd.read_csv(self.fN, sep=',', encoding='utf-8')
+        data['description_tokes'] = data['description'].apply(self.toke_lemmatize)
+        return data['description_tokes']
+
+    def toke_lemmatize(self, text):
+        lemmatizer = WordNetLemmatizer
+        translator = str.maketrans('', '', string.punctuation)
+        text = text.translate(translator)
+        review = sent_tokenize(text.lower())
+        out = []
+        for sent in review:
+            new_sent = []
+            for word in pos_tag(word_tokenize(sent)):
+                if word[0] not in self.stoplist:
+                    new_sent.append(lemmatizer.lemmatize(word[1], word[0].lower()))
+            if len(new_sent) > 0:
+                out.append(new_sent)
+        return out
+
+        
