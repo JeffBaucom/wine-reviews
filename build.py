@@ -22,7 +22,7 @@ class TfidfTransform(luigi.Task):
             for line in sorted_scores:
                 writer.writerow([line[0], line[1]])
 
-class VectorizeWords(luigi.Task):
+class TrainGensim(luigi.Task):
     """
     Reads the raw data, and outputs a gensim model for the corpus
     """
