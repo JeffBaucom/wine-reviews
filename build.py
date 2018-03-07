@@ -34,9 +34,12 @@ class WriteCaveman(luigi.Task):
 
     def run(self):
         caveman = caveman_sommelier.Caveman()
+        caveman.tokenize_reviews()
         tokes_df = caveman.tokenize_reviews()
-        header = ['description', 'description_tokes']
-        tokes_df.to_csv(self.output(), columns = header)
+        #header = ['description', 'description_tokes']
+        f = self.output().open('w')
+        tokes_df.to_csv(f)
+        f.close()
          
     def requires(self):
         return None

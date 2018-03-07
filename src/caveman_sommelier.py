@@ -73,8 +73,12 @@ class Caveman(object):
 
     def tokenize_reviews(self):
         data = pd.read_csv(self.fN, sep=',', encoding='utf-8')
+
         data['description_tokes'] = data['description'].apply(self.toke_lemmatize)
-        return data['description_tokes']
+        #data['description_tokes'] = data['description']
+        #header = ['description', 'description_tokes']
+        #data.to_csv('to_csv.csv', columns=header)
+        return data
 
     def toke_lemmatize(self, text):
         lemmatizer = WordNetLemmatizer
