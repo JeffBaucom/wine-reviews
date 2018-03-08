@@ -1,6 +1,7 @@
 import luigi
 import csv
 import pandas as pd
+from gensim.models import word2vec
 from src import wine_dictionary, caveman_sommelier
 
 class TfidfTransform(luigi.Task):
@@ -30,16 +31,17 @@ class WriteCaveman(luigi.Task):
     Parameters: with or without lemmatization
     """
     def output(self):
-        return luigi.LocalTarget("data/caveman_reviews.csv")
+        return luigi.LocalTarget("data/caveman_pickle")
 
     def run(self):
         caveman = caveman_sommelier.Caveman()
         caveman.tokenize_reviews()
         tokes_df = caveman.tokenize_reviews()
         #header = ['description', 'description_tokes']
-        f = self.output().open('w')
-        tokes_df.to_csv(f)
-        f.close()
+        f = self.output().path
+        #tokes_df.to_csv(f)
+        tokes_df.to_pickle(f)
+        #f.close()
          
     def requires(self):
         return None
@@ -55,10 +57,16 @@ class TrainWord2Vec(luigi.Task):
         return luigi.LocalTarget("data/models/gensim_word2vec")
 
     def run(self):
-        pass
+        data = pd.read_pickle(self.input().path)
+        sents = data['description_tokes'].tolist()
+        tokes = []
+        for i in sents:
+            tokes = tokes + i
+        model = word2vec.Word2Vec(tokes, min_count=1, size=100, workers=4)
+        model.save(self.output().path)
 
     def requires(self):
-        return None
+        return WriteCaveman()
 
 class VectorizeWords(luigi.Task):
     """

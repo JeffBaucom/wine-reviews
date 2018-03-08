@@ -76,9 +76,9 @@ class Caveman(object):
 
         data['description_tokes'] = data['description'].apply(self.toke_lemmatize)
         #data['description_tokes'] = data['description']
-        #header = ['description', 'description_tokes']
+        header = ['description', 'description_tokes']
         #data.to_csv('to_csv.csv', columns=header)
-        return data
+        return data[header]
 
     def toke_lemmatize(self, text):
         lemmatizer = WordNetLemmatizer
