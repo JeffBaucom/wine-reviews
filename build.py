@@ -68,6 +68,28 @@ class TrainWord2Vec(luigi.Task):
     def requires(self):
         return WriteCaveman()
 
+class TrainDoc2Vec(luigi.Task):
+    """
+    Reads the raw data, and outputs a gensim model for the corpus
+    using gensim.models.word2vec 
+    Parameters: DBOW/CBOW, encoding parameters
+    """
+
+    def output(self):
+        return luigi.LocalTarget("data/models/gensim_doc2vec")
+
+    def run(self):
+        data = pd.read_pickle(self.input().path)
+        sents = data['description_tokes'].tolist()
+        tokes = []
+        for i in sents:
+            tokes = tokes + i
+        model = word2vec.Word2Vec(tokes, min_count=1, size=100, workers=4)
+        model.save(self.output().path)
+
+    def requires(self):
+        return WriteCaveman()
+
 class VectorizeWords(luigi.Task):
     """
     """
