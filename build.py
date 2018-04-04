@@ -1,7 +1,7 @@
 import luigi
 import csv
 import pandas as pd
-from gensim.models import word2vec
+from gensim.models import word2vec, doc2vec
 from src import wine_dictionary, caveman_sommelier
 
 class TfidfTransform(luigi.Task):
@@ -72,7 +72,7 @@ class TrainDoc2Vec(luigi.Task):
     """
     Reads the raw data, and outputs a gensim model for the corpus
     using gensim.models.word2vec 
-    Parameters: DBOW/CBOW, encoding parameters
+    Parameters: DBOW/CBOW, min_count, vector_size
     """
 
     def output(self):
@@ -80,11 +80,13 @@ class TrainDoc2Vec(luigi.Task):
 
     def run(self):
         data = pd.read_pickle(self.input().path)
-        sents = data['description_tokes'].tolist()
-        tokes = []
-        for i in sents:
-            tokes = tokes + i
-        model = word2vec.Word2Vec(tokes, min_count=1, size=100, workers=4)
+        raw = pd.read_csv('raw/raw_wine_data.csv', sep=',', encoding='utf-8')
+        titles = raw['title'].tolist()
+        docs = data['description'].tolist() #pass this list to TaggedWine class
+        documents = wine_dictionary.TaggedWineDocument(docs, titles)
+        model = doc2vec.Doc2Vec(vector_size=50, window=8, min_count=2, workers=4)
+        model.build_vocab(documents)
+        model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
         model.save(self.output().path)
 
     def requires(self):

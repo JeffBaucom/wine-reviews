@@ -1,4 +1,6 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+from gensim.models.doc2vec import TaggedDocument
+from gensim.utils import simple_preprocess
 import numpy as np
 import csv
 #import sys
@@ -20,6 +22,15 @@ class WineDictionary(object):
         scores = zip(vectorizer.get_feature_names(), np.asarray(tfidf_result.sum(axis=0)).ravel())
         return sorted(scores, key=lambda x: x[1], reverse=True)
 
+class TaggedWineDocument(object):
+    def __init__(self, tokes, titles):
+        self.tokes = tokes
+        self.titles = titles
+    
+    def __iter__(self):
+        for idx, wine in enumerate(self.tokes):
+            yield TaggedDocument(simple_preprocess(wine), [self.titles[idx]])
+            
 
 """
 fileName = 'winemag-data-130k-v2.csv'
